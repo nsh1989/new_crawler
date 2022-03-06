@@ -1,1 +1,1 @@
-__all__ = ["patterns", "manager"]
+__all__ = ["patterns", "manager", "proxy", "Configs"]
