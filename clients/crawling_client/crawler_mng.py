@@ -92,6 +92,7 @@ class CrawlerMng(Manager, threading.Thread):
             self.__producer_proxies.append(self.__proxyMng.get_proxy())
         for producer in self._producers:
             if producer.is_alive() is False:
+                self._producers.remove(producer)
                 if not self.__producerTaskQue.empty():
                     proxy: Proxy
                     if len(self.__producer_proxies) > 0:
@@ -103,14 +104,13 @@ class CrawlerMng(Manager, threading.Thread):
                     new_producer = EncarProducer(**kwargs)
                     self._producers.append(new_producer)
                     new_producer.start()
-                    self._producers.remove(producer)
 
     def __check_consumers(self):
         for consumer in self._consumers:
             if not self.consumer_task_que.empty():
                 if consumer.is_alive() is False:
-                    self.__make_consumers()
                     self._consumers.remove(consumer)
+                    self.__make_consumers()
                 else:
                     break
             else:

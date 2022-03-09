@@ -5,13 +5,9 @@ import pymysql as pymysql
 
 
 class DBMng:
-    # __conn = pymysql.connect(host='localhost', user='root', password='root', db='crawler', charset='utf8')
-    # __cursor = __conn.cursor()
 
-    @classmethod
-    def get_one(cls, sql: str) -> Any:
-        # cls.__cursor.execute(sql)
-        # return cls.__cursor.fetchone()
+    @staticmethod
+    def get_one(sql: str) -> Any:
         conn = pymysql.connect(host='localhost', user='root', password='root', db='crawler', charset='utf8')
         cursor = conn.cursor()
         cursor.execute(sql)
@@ -39,8 +35,6 @@ class DBMng:
 
     @staticmethod
     def mutate(sql: str):
-        # cls.__cursor.execute(sql)
-        # cls.__conn.commit()
         conn = pymysql.connect(host='localhost', user='root', password='root', db='crawler', charset='utf8')
         cursor = conn.cursor()
         cursor.execute(sql)
