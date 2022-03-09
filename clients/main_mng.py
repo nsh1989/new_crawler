@@ -32,13 +32,16 @@ class MainMng(Manager):
         print(self.__crawlerMng.state)
         print(f"not done : {self.__crawlerMng.is_alive()}")
         while True:
-            if not self.__que.empty():
-                print("queue not empty : " + self.__que.get())
-                print(f"not done : {self.__crawlerMng.is_alive()}")
-                if self.__crawlerMng.state.__eq__("done") and self.__que.empty():
-                    print(f"done : {self.__crawlerMng.is_alive()}")
-                    break
-            else:
-                print("queue empty")
+
+            print("queue not empty : " + self.__que.get())
+            print(f"not done : {self.__crawlerMng.is_alive()}")
+            if self.__crawlerMng.state.__eq__("done") and self.__que.empty():
+                print(f"done : {self.__crawlerMng.is_alive()}")
+                break
+
+            # if not self.__que.empty():
+            #
+            # else:
+            #     print("queue empty")
 
         self.__crawlerMng.join()

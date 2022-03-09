@@ -1,1 +1,1 @@
-__all__ = ["dat_mng"]
+__all__ = ["dat_mng", "datAPI"]

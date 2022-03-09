@@ -1,5 +1,4 @@
 import trace
-import traceback
 from dataclasses import dataclass
 from typing import List
 
@@ -17,30 +16,39 @@ class Proxy:
         self.__port: str = attrs[1]
         self.__id: str = attrs[2]
         self.__psw: str = attrs[3]
+        self.__isUsed: bool = False
+        self.__value: str = value
 
+    def __del__(self):
+        pass
 
-def __del__(self):
-    pass
+    @property
+    def value(self):
+        return self.__value
 
+    @property
+    def ipaddr(self):
+        return self.__ipaddr
 
-@property
-def ipaddr(self):
-    return self.__ipaddr
+    @property
+    def port(self):
+        return self.__port
 
+    @property
+    def id(self):
+        return self.__id
 
-@property
-def port(self):
-    return self.__port
+    @property
+    def psw(self):
+        return self.__psw
 
+    @property
+    def is_used(self):
+        return self.__isUsed
 
-@property
-def id(self):
-    return self.__id
-
-
-@property
-def psw(self):
-    return self.__psw
+    @is_used.setter
+    def is_used(self, value: bool):
+        self.__isUsed = value
 
 
 class ProxyMng(metaclass=Singleton):
