@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import json
-import trace
 from datetime import datetime
 from dateutil import rrule
 import requests
@@ -18,12 +16,16 @@ class EncarConsumer(Consumer):
     __proxy: Proxy
 
     @property
+    def task(self):
+        return self.__proxy
+
+    @property
     def proxy(self):
         return self.__proxy
 
     @proxy.setter
-    def proxy(self, value: bool):
-        self.__proxy = True
+    def proxy(self, value: proxy):
+        self.__proxy = value
 
     def _init(self, *args, **kwargs):
         if len(kwargs) > 0:
@@ -32,7 +34,7 @@ class EncarConsumer(Consumer):
             self.__proxy: Proxy = kwargs.get("proxy").pop()
 
     def __call_url(self, car_id: str, sd_flag: str = "N") -> dict | None:
-        url = f'http://www.encar.com/dc/dc_cardetailview.do'
+        url = f'https://www.encar.com/dc/dc_cardetailview.do'
         params = {
             'method': 'ajaxInspectView',
             'sdFlag': sd_flag,
@@ -43,23 +45,23 @@ class EncarConsumer(Consumer):
         proxies = {'https': f"socks5://{proxy}",
                    'http': f"socks5://{proxy}"
                    }
-        
-        resp: Response = requests.Response()
+
+        resp: Response
         try:
             resp = s.get(url, params=params, proxies=proxies)
         except Exception as e:
             raise e
-        
+
         if resp.json()[0]['msg'] == 'FAIL':
             return None
         else:
             return resp.json()[0]['inspect']
-    
+
     def __set_detail(self, data: dict):
         self.__task['RAWDATA'] = data
         try:
             date = data['carSaleDto']['firstRegDt']['time']
-            date = datetime.datetime.fromtimestamp(date / 1e3)
+            date = datetime.fromtimestamp(date / 1e3)
             self.__task['UPDATEDDATE'] = date
         except Exception as e:
             print("매물 최초등록일")
@@ -67,7 +69,7 @@ class EncarConsumer(Consumer):
             # 매물변경일
             try:
                 date = data['carSaleDto']['mdfDt']['time']
-                date = datetime.datetime.fromtimestamp(date / 1e3)
+                date = datetime.fromtimestamp(date / 1e3)
                 self.__task['ModifiedDate'] = date
             except Exception as e:
                 print("매물 변경일")
@@ -93,10 +95,10 @@ class EncarConsumer(Consumer):
                 print(e)
             # AGE
             try:
-                startDate = data['carSaleDto']['year']
-                startDate = datetime.datetime.strptime(startDate, "%Y%m")
-                endDate = self.__task['UPDATEDDATE']
-                diff_list = list(rrule.rrule(rrule.MONTHLY, dtstart=startDate, until=endDate))
+                start_date = data['carSaleDto']['year']
+                start_date = datetime.strptime(start_date, "%Y%m")
+                end_date = self.__task['UPDATEDDATE']
+                diff_list = list(rrule.rrule(rrule.MONTHLY, dtstart=start_date, until=end_date))
                 self.__task['AGE'] = len(diff_list)
             except Exception as e:
                 print("AGE")
@@ -104,7 +106,7 @@ class EncarConsumer(Consumer):
             # SOLDDATE
             try:
                 date = data['carSaleDto']['soldDt']['time']
-                solddt = datetime.datetime.strptime(date, "%Y%m%d")
+                solddt = datetime.strptime(date, "%Y%m%d")
                 self.__task['SOLDDATE'] = str(solddt)
                 date = self.__task['SOLDDATE'] - self.__task['UPDATEDDATE']
                 self.__task['SOLDDAYS'] = date
@@ -114,11 +116,11 @@ class EncarConsumer(Consumer):
 
     def run(self):
         self.__parent.notify(self, "success")
-        data: dict = {}
+        data: dict
         try:
             data = self.__call_url(self.__task["Id"])
         except Exception as e:
-            trace.Trace(e)
+            print(e)
             self.__parent.notify(self, "http_error")
             return
         if data is not None:

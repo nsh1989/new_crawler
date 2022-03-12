@@ -1,8 +1,6 @@
 import json
-import queue
-import random
+
 import threading
-import trace
 
 import requests
 from requests import Response
@@ -10,7 +8,7 @@ from requests import Response
 from utils import Configs
 from utils.manager import Manager
 from utils.patterns.producer_consumer import Producer
-from utils.proxy.proxy import ProxyMng, Proxy
+from utils.proxy.proxy import Proxy
 from clients.database_client.db_mng import DBMng
 
 
@@ -36,12 +34,12 @@ class EncarProducer(Producer):
         return self.__proxy
 
     @proxy.setter
-    def proxy(self, value: bool):
-        self.__proxy = True
+    def proxy(self, value: Proxy):
+        self.__proxy = value
 
-    def __checkID(self, id: int):
+    def __check_id(self, encar_id: int):
         self._lock.acquire()
-        sql = "SELECT * FROM encarlist WHERE ID= %s;" % (id)
+        sql = "SELECT * FROM encarlist WHERE ID= %s;" % encar_id
         rows = DBMng.get_all(sql)
         self._lock.release()
         if rows is None:
@@ -59,47 +57,48 @@ class EncarProducer(Producer):
             'q': '(And.Hidden.N._.CarType.N._.Condition.Inspection._.Condition.Record.)',
             'sr': f'|ModifiedDate|{self.__url}|100'
         }
-        resp: Response = Response()
-        url = 'http://api.encar.com/search/car/list/premium'
+        resp: Response
+        url = 'https://api.encar.com/search/car/list/premium'
         proxy = f"{self.__proxy.id}:{self.__proxy.psw}@{self.__proxy.ipaddr}:{self.__proxy.port}"
         proxies = {'https': f"socks5://{proxy}",
                    'http': f"socks5://{proxy}"
                    }
-        items: dict = {}
+
         try:
             resp = s.get(url, params=params, proxies=proxies)
             items = resp.json()['SearchResults']
         except Exception as e:
-            trace.Trace(e)
+            print(e)
             self.__parent.notify(self, "http_error")
             return
 
         for item in items:
-            dict = {}
+
+            consumer_task: dict = {}
 
             if item['ServiceCopyCar'] == 'DUPLICATION':
                 continue
 
-            if self.__checkID(item['Id']):
+            if self.__check_id(item['Id']):
                 continue
 
-            dict['Id'] = item['Id']
-            dict['Manufacturer'] = item['Manufacturer']
-            dict['Model'] = item['Model']
-            dict['Badge'] = str(item['Badge']).replace("'", "''")
-            dict['BadgeDetail'] = ''
+            consumer_task['Id'] = item['Id']
+            consumer_task['Manufacturer'] = item['Manufacturer']
+            consumer_task['Model'] = item['Model']
+            consumer_task['Badge'] = str(item['Badge']).replace("'", "''")
+            consumer_task['BadgeDetail'] = ''
             try:
-                dict['BadgeDetail'] = str(item['BadgeDetail']).replace("'", "''")
+                consumer_task['BadgeDetail'] = str(item['BadgeDetail']).replace("'", "''")
             except Exception as e:
-                trace.Trace(e)
+                print(e)
                 pass
-            dict['FuelType'] = item['FuelType']
-            dict['Transmission'] = item['Transmission']
-            dict['FormYear'] = item['FormYear']
-            dict['FIRSTREG'] = item['Year']
-            dict['Mileage'] = item['Mileage']
-            dict['Price'] = item['Price']
+            consumer_task['FuelType'] = item['FuelType']
+            consumer_task['Transmission'] = item['Transmission']
+            consumer_task['FormYear'] = item['FormYear']
+            consumer_task['FIRSTREG'] = item['Year']
+            consumer_task['Mileage'] = item['Mileage']
+            consumer_task['Price'] = item['Price']
 
-            self.__parent.notify(self, json.dumps(dict))
+            self.__parent.notify(self, json.dumps(consumer_task))
 
         self.__parent.notify(self, "success")

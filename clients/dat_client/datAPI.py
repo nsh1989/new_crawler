@@ -2,29 +2,28 @@ from zeep import Client, exceptions
 
 
 class DAT:
-
     Ecode_wsdl = 'https://www.datgroup.com/DATECodeSelection/services/VehicleIdentificationService?wsdl'
     header = {}
     token = None
     sessionID = None
 
     @staticmethod
-    def getToken(customerNumber, customerLogin, customerPassword, interfacePartnerNumber,
-                 interfacePartnerSignature) -> str:
+    def get_token(customer_number, customer_login, customer_password, interface_partner_number,
+                  interface_partner_signature) -> str:
         token_wsdl = 'https://www.dat.de/DATECodeSelection/services/Authentication?wsdl'
         token_param = {
             'request': {
-                'customerNumber': customerNumber,
-                'customerLogin': customerLogin,
-                'customerPassword': customerPassword,
-                'interfacePartnerNumber': interfacePartnerNumber,
-                'interfacePartnerSignature': interfacePartnerSignature
+                'customerNumber': customer_number,
+                'customerLogin': customer_login,
+                'customerPassword': customer_password,
+                'interfacePartnerNumber': interface_partner_number,
+                'interfacePartnerSignature': interface_partner_signature
             }
         }
         client = Client(wsdl=token_wsdl)
         return client.service.generateToken(**token_param)
 
-    def MakeHttpHeader(self, token):
+    def make_http_header(self, token):
         header = {
             'DAT-AuthorizationToken': token,
             # 'Content-Type': 'content="text/html; charset=UTF-8',
@@ -34,33 +33,33 @@ class DAT:
         self.header = header
 
     @staticmethod
-    def MakeSessionID(customerNumber, customerLogin, interfacePartnerNumber, interfacePartnerSignature,
-                      customerSignature) -> str:
+    def make_session_id(customer_number, customer_login, interface_partner_number, interface_partner_signature,
+                        customer_signature) -> str:
 
         token_wsdl = 'https://www.dat.de/DATECodeSelection/services/Authentication?wsdl'
         client = Client(wsdl=token_wsdl)
         login_data = {
             'request': {
-                'customerNumber': customerNumber,
-                'customerLogin': customerLogin,
-                'customerSignature': customerSignature,
-                'interfacePartnerNumber': interfacePartnerNumber,
-                'interfacePartnerSignature': interfacePartnerSignature,
+                'customerNumber': customer_number,
+                'customerLogin': customer_login,
+                'customerSignature': customer_signature,
+                'interfacePartnerNumber': interface_partner_number,
+                'interfacePartnerSignature': interface_partner_signature,
                 # 'productVariant': 'etn'
             }
         }
         return client.service.doLogin(**login_data)
 
     def __init__(self):
-        self.getToken('1332560', 'parkwonb', 'parkwonb01', '1332560',
-                      '268F665F1D8C348E98479B3C323839158F9B48D45EACE60426A4AFC68FA562F6')
-        self.MakeHttpHeader(self.token)
-        self.MakeSessionID('1332560', 'parkwonb', '1332560',
-                           '268F665F1D8C348E98479B3C323839158F9B48D45EACE60426A4AFC68FA562F6',
-                           'FB9457B9BF60CEB375E18469EFD76519CEFD82ACCEC1E235611947ECB0C34EE5')
+        self.get_token('1332560', 'parkwonb', 'parkwonb01', '1332560',
+                       '268F665F1D8C348E98479B3C323839158F9B48D45EACE60426A4AFC68FA562F6')
+        self.make_http_header(self.token)
+        self.make_session_id('1332560', 'parkwonb', '1332560',
+                             '268F665F1D8C348E98479B3C323839158F9B48D45EACE60426A4AFC68FA562F6',
+                             'FB9457B9BF60CEB375E18469EFD76519CEFD82ACCEC1E235611947ECB0C34EE5')
 
-    def getEcodeByVin(self, vin):
-        ecode = None
+    def get_ecode_by_vin(self, vin):
+        ecode: str
         client = Client(wsdl=self.Ecode_wsdl)
         client.transport.session.headers.update(self.header)
         # vin = 'VSSDATTESTSTUB002'

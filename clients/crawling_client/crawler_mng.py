@@ -1,12 +1,11 @@
 import json
-import queue
-import random
+
 import threading
 import time
 import trace
-from dataclasses import dataclass, field
+
 from queue import Queue
-from typing import List
+from typing import List, cast
 
 import requests
 from requests import Response
@@ -54,8 +53,8 @@ class CrawlerMng(Manager, threading.Thread):
             'q': '(And.Hidden.N._.CarType.N._.Condition.Inspection._.Condition.Record.)',
             'sr': '|ModifiedDate|0|100'
         }
-        resp: Response = Response()
-        url = 'http://api.encar.com/search/car/list/premium'
+        resp: Response
+        url = 'https://api.encar.com/search/car/list/premium'
         try:
             resp = s.get(url, params=params)
         except requests.exceptions as e:
@@ -156,16 +155,19 @@ class CrawlerMng(Manager, threading.Thread):
             return False
 
     def notify(self, sender: object, event: str) -> None:
+
         if sender.__class__.__name__ == "EncarProducer":
+            sender: EncarProducer = cast(EncarProducer, sender)
             self.__producer_notify(sender, event)
         elif sender.__class__.__name__ == "EncarConsumer":
+            sender: EncarConsumer = cast(EncarConsumer, sender)
             self.__consumer_notify(sender, event)
         pass
 
     def __consumer_notify(self, sender: EncarConsumer, event: str):
         if event == "http_error":
             self.__consumer_proxies.remove(sender.proxy)
-            self.__consumerTaskQue.put(sender.url)
+            self.__consumerTaskQue.put(sender.task)
             self.__check_consumers()
             return
         elif event == "success":
@@ -176,7 +178,6 @@ class CrawlerMng(Manager, threading.Thread):
         # self.__consumerTaskQue.put(event)
 
     def __producer_notify(self, sender: EncarProducer, event: str):
-
         if event == "http_error":
             self.__producer_proxies.remove(sender.proxy)
             self.__producerTaskQue.put(sender.url)

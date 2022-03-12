@@ -1,4 +1,3 @@
-import threading
 from typing import Any
 
 import pymysql as pymysql
@@ -27,7 +26,7 @@ class DBMng:
         return row
 
     @staticmethod
-    def insert_dictionary(table_name:str, data:dict):
+    def insert_dictionary(table_name: str, data: dict):
         columns = ', '.join("`" + str(x).replace('/', '_') + "`" for x in data.keys())
         values = ', '.join("'" + str(x).replace('/', '_') + "'" for x in data.values())
         sql = "INSERT INTO %s ( %s ) values ( %s );" % (table_name, columns, values)

@@ -1,8 +1,6 @@
 import datetime
 import queue
 import threading
-import time
-import trace
 
 from clients.dat_client.datAPI import DAT
 from clients.database_client.db_mng import DBMng
@@ -27,17 +25,17 @@ class DatMng(Manager, threading.Thread):
             self.__set_ecodes()
 
         except Exception as e:
-            trace.Trace(e)
-            DAT.getToken('1332560', 'parkwonb', 'parkwonb01', '1332560',
+            print(e)
+            DAT.get_token('1332560', 'parkwonb', 'parkwonb01', '1332560',
                          '268F665F1D8C348E98479B3C323839158F9B48D45EACE60426A4AFC68FA562F6')
 
     def __set_session(self):
-        self.__session = DAT.MakeSessionID('1332560', 'parkwonb', '1332560',
+        self.__session = DAT.make_session_id('1332560', 'parkwonb', '1332560',
                                            '268F665F1D8C348E98479B3C323839158F9B48D45EACE60426A4AFC68FA562F6',
                                            'FB9457B9BF60CEB375E18469EFD76519CEFD82ACCEC1E235611947ECB0C34EE5')
 
     def __set_token(self):
-        self.__token = DAT.getToken('1332560', 'parkwonb', 'parkwonb01', '1332560',
+        self.__token = DAT.get_token('1332560', 'parkwonb', 'parkwonb01', '1332560',
                                     '268F665F1D8C348E98479B3C323839158F9B48D45EACE60426A4AFC68FA562F6')
 
     def __set_ecodes(self):
@@ -90,7 +88,7 @@ class DatMng(Manager, threading.Thread):
                 else:
                     pass
             except Exception as e:
-                trace.Trace(e)
+                print(e)
                 self.__task_que.put(data)
 
         # todo dat token 갱신

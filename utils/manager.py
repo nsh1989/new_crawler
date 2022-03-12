@@ -1,10 +1,15 @@
 from abc import abstractmethod
-from enum import Enum
+from enum import Enum, auto
 
 from utils.patterns.mediator import Mediator
 from utils.patterns.singleton import Singleton
 
-MngState = Enum('MngState', 'START RUNNING DONE')
+
+# MngState: Enum = Enum('MngState', "START RUNNING DONE")
+class MngState(Enum):
+    START = auto()
+    RUNNING = auto()
+    DONE = auto()
 
 
 class Manager(Mediator, metaclass=Singleton):
