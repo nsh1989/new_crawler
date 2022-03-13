@@ -26,8 +26,8 @@ class CrawlerMng(Manager, threading.Thread):
     def _init(self, *args, **kwargs):
 
         self.__proxyMng: ProxyMng = ProxyMng()
-        self.__parent = kwargs.get("parent")
-        self.__state = MngState.START
+        self.__parent: Manager = kwargs.get("parent")
+        self.__state: MngState = MngState.START
 
         self._producers: List[Producer] = list()
         self.__producerTaskQue: Queue = Queue()
@@ -36,6 +36,12 @@ class CrawlerMng(Manager, threading.Thread):
         self._consumers: List[Consumer] = list()
         self.__consumerTaskQue: Queue = Queue()
         self.__consumer_proxies: List[Proxy] = list()
+
+        self.__ecode_que: Queue = Queue()
+
+    @property
+    def ecode_que(self):
+        return self.__ecode_que
 
     @property
     def state(self):
@@ -150,6 +156,7 @@ class CrawlerMng(Manager, threading.Thread):
     def __check_tasks_done(self) -> bool:
         if len(self._producers) <= 0 and self.__producerTaskQue.empty() and len(
                 self._consumers) <= 0 and self.__consumerTaskQue.empty():
+            self.__parent.notify(self, "success")
             return True
         else:
             return False
@@ -172,6 +179,7 @@ class CrawlerMng(Manager, threading.Thread):
             return
         elif event == "success":
             sender.proxy.is_used = False
+            self.__ecode_que.put(sender.task)
         elif event == "none":
             pass
         # else:
