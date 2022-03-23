@@ -1,6 +1,7 @@
 from typing import Any
 
 import pymysql as pymysql
+from pymysql.cursors import DictCursor
 
 
 class DBMng:
@@ -18,12 +19,19 @@ class DBMng:
     def get_all(sql: str) -> Any:
         # cls.__cursor.execute(sql)
         # return cls.__cursor.fetchall()
-        conn = pymysql.connect(host='localhost', user='root', password='root', db='crawler', charset='utf8')
+        conn = pymysql.connect(host='localhost', user='root', password='root', db='crawler', charset='utf8',
+                               cursorclass=DictCursor)
         cursor = conn.cursor()
         cursor.execute(sql)
-        row = cursor.fetchone()
+        result = cursor.fetchall()
+        rows: list = []
+        for row in result:
+            data: dict = {}
+            for key, value in row.items():
+                data[key] = value
+            rows.append(data)
         conn.close()
-        return row
+        return rows
 
     @staticmethod
     def insert_dictionary(table_name: str, data: dict):

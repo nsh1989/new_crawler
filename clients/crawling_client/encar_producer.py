@@ -86,12 +86,17 @@ class EncarProducer(Producer):
             consumer_task['Manufacturer'] = item['Manufacturer']
             consumer_task['Model'] = item['Model']
             consumer_task['Badge'] = str(item['Badge']).replace("'", "''")
-            consumer_task['BadgeDetail'] = ''
-            try:
+            if 'BadgeDetail' in item:
                 consumer_task['BadgeDetail'] = str(item['BadgeDetail']).replace("'", "''")
-            except Exception as e:
-                print(e)
-                pass
+
+            else:
+                consumer_task['BadgeDetail'] = ''
+            # try:
+            #
+            # except Exception as e:
+            #     with open("encar_producer_error.json", "a") as f:
+            #         json_string = json.dumps(e)
+            #         f.write(json_string)
             consumer_task['FuelType'] = item['FuelType']
             consumer_task['Transmission'] = item['Transmission']
             consumer_task['FormYear'] = item['FormYear']
@@ -100,5 +105,5 @@ class EncarProducer(Producer):
             consumer_task['Price'] = item['Price']
 
             self.__parent.notify(self, json.dumps(consumer_task))
-
+        print(" encar producer end")
         self.__parent.notify(self, "success")

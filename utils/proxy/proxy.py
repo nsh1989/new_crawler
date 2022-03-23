@@ -60,6 +60,10 @@ class ProxyMng(metaclass=Singleton):
         self.__proxy_list: List[Proxy] = self.__setlist("https://wang.allpare.com/webshare.txt")
 
     @staticmethod
+    def get_proxy_list() -> List[Proxy]:
+        return ProxyMng.__setlist("https://wang.allpare.com/webshare.txt")
+
+    @staticmethod
     def __setlist(url: str) -> List[Proxy]:
         s: requests.sessions = requests.session()
         resp: requests.models.Response = requests.models.Response()

@@ -2,10 +2,10 @@ from zeep import Client, exceptions
 
 
 class DAT:
-    Ecode_wsdl = 'https://www.datgroup.com/DATECodeSelection/services/VehicleIdentificationService?wsdl'
-    header = {}
-    token = None
-    sessionID = None
+    # Ecode_wsdl = 'https://www.datgroup.com/DATECodeSelection/services/VehicleIdentificationService?wsdl'
+    # header = {}
+    # token = None
+    # sessionID = None
 
     @staticmethod
     def get_token(customer_number, customer_login, customer_password, interface_partner_number,
@@ -23,14 +23,15 @@ class DAT:
         client = Client(wsdl=token_wsdl)
         return client.service.generateToken(**token_param)
 
-    def make_http_header(self, token):
+    @staticmethod
+    def make_http_header(token) -> dict:
         header = {
             'DAT-AuthorizationToken': token,
             # 'Content-Type': 'content="text/html; charset=UTF-8',
             # 'accept-language': 'ko,en-US;q=0.9,en;q=0.8,ja;q=0.7,ru;q=0.6,kk;q=0.5'
         }
 
-        self.header = header
+        return header
 
     @staticmethod
     def make_session_id(customer_number, customer_login, interface_partner_number, interface_partner_signature,
@@ -58,10 +59,12 @@ class DAT:
                              '268F665F1D8C348E98479B3C323839158F9B48D45EACE60426A4AFC68FA562F6',
                              'FB9457B9BF60CEB375E18469EFD76519CEFD82ACCEC1E235611947ECB0C34EE5')
 
-    def get_ecode_by_vin(self, vin):
+    @staticmethod
+    def get_ecode_by_vin(vin, header: dict, session_id: str) -> str:
+        ecode_wsdl = 'https://www.datgroup.com/DATECodeSelection/services/VehicleIdentificationService?wsdl'
         ecode: str
-        client = Client(wsdl=self.Ecode_wsdl)
-        client.transport.session.headers.update(self.header)
+        client = Client(wsdl=ecode_wsdl)
+        client.transport.session.headers.update(header)
         # vin = 'VSSDATTESTSTUB002'
         req = {
             'request': {
@@ -73,7 +76,7 @@ class DAT:
                     'datCountryIndicator': 'de',
                     'language': 'de'
                 },
-                'sessionID': self.sessionID
+                'sessionID': session_id
             }
         }
         try:

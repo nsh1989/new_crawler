@@ -2,14 +2,17 @@
 
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+import sys
 
 from clients.main_mng import MainMng
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
+    cmd: str = sys.argv[1]
     mng1: MainMng
     try:
-        mng1 = MainMng()
+        kwargs = {"mode": cmd}
+        mng1 = MainMng(**kwargs)
         mng1.run()
     except Exception as e:
         print(e)
